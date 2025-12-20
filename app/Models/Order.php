@@ -16,6 +16,10 @@ class Order extends Model
         'customer_id',
         'date',
         'total_price',
+        'discount',
+        'discount_amount',
+        'total_payment',
+        'status',
     ];
 
     public function orderdetail():HasMany
