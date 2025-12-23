@@ -15,10 +15,12 @@ use Filament\Resources\Resource;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
+use App\Filament\Exports\OrderExporter;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Placeholder;
 use App\Filament\Resources\OrderResource\Pages;
@@ -177,6 +179,25 @@ class OrderResource extends Resource
                             ->disabled()
                             ->prefix('IDR')
                             ->dehydrated(),
+
+                        Select::make('payment_method')
+                            ->columnSpan(2)
+                            ->options([
+                                'cash' => 'Cash',
+                                'credit' => 'Credit Card',
+                                'debit' => 'Debit Card',
+                                'qris' => 'QRIS',
+                            ])->default('cash'),
+
+                        Select::make('payment_status')
+                            ->columnSpan(2)
+                            ->options([
+                                'unpaid' => 'Unpaid',
+                                'paid' => 'Paid',
+                                'failed' => 'Failed',
+                            ])->default('unpaid'),
+
+
                     ])->columnSpan(1)
                     ->columns(4),
             ])->columns(3);
@@ -186,33 +207,46 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
-            TextColumn::make('id')
+                TextColumn::make('id')
                     ->label('Order ID'),
 
                 Tables\Columns\TextColumn::make('customer.name')
                     ->searchable()
                     ->sortable(),
 
-                    TextColumn::make('total_price')
+                TextColumn::make('total_price')
                     ->sortable()
                     ->prefix('IDR')
                     ->numeric(),
 
-                    TextColumn::make('discount')
-                    ->suffix('%'),
+                TextColumn::make('discount')
+                    ->suffix('%')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
-                    TextColumn::make('discount_amount')
+                TextColumn::make('discount_amount')
                     ->prefix('IDR')
-                    ->numeric(),
+                    ->numeric()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
-                    TextColumn::make('total_payment')
+                TextColumn::make('total_payment')
                     ->sortable()
                     ->prefix('IDR')
                     ->numeric(),
 
-                    TextColumn::make('status')
+                TextColumn::make('payment_status')
+                    ->label('Payment Status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
+                        'paid' => 'success',
+                        'unpaid' => 'danger'
+                    }),
+
+                TextColumn::make('payment_method')
+                    ->label('Payment Method'),
+
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
                         'new' => 'info',
                         'processing' => 'warning',
                         'completed' => 'success',
@@ -236,6 +270,9 @@ class OrderResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ])
+            ->headerActions([
+                ExportAction::make()->exporter(OrderExporter::class),
             ]);
     }
 

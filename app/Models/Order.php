@@ -20,6 +20,8 @@ class Order extends Model
         'discount_amount',
         'total_payment',
         'status',
+        'payment_status',
+        'payment_method'
     ];
 
     public function orderdetail():HasMany
