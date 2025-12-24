@@ -272,7 +272,11 @@ class OrderResource extends Resource
                 ]),
             ])
             ->headerActions([
-                ExportAction::make()->exporter(OrderExporter::class),
+                ExportAction::make()
+                ->exporter(OrderExporter::class)
+                ->label('Export Orders')
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('success'),
             ]);
     }
 
